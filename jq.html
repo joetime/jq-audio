@@ -1,45 +1,302 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Web Audio Multiband EQ</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-    .eq-band {
-      margin-bottom: 20px;
-    }
-    .eq-band label {
-      display: block;
-      margin-bottom: 5px;
-    }
-    .eq-band input[type="range"] {
-      width: 100%;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Audio Processor with Multiband EQ and Toggle</title>
+    <style>
+        /* Basic Styles */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            background-color: #f0f0f0;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        /* Toggle Switch Styles */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+            margin-right: 15px;
+        }
+
+        /* Hide default checkbox */
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        /* Slider */
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #2196F3;
+            transition: 0.4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #66bb6a;
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #66bb6a;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Label Styles */
+        #toggleLabel {
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        /* EQ Controls */
+        .eq-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: 40px 0;
+        }
+
+        .eq-band {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .eq-band label {
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .eq-band input[type="range"] {
+            -webkit-appearance: none;
+            width: 150px;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            transition: background 0.3s;
+        }
+
+        .eq-band input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #2196F3;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .eq-band input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #2196F3;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .eq-band input[type="range"]:hover::-webkit-slider-thumb {
+            background: #66bb6a;
+        }
+
+        .eq-band input[type="range"]:hover::-moz-range-thumb {
+            background: #66bb6a;
+        }
+
+        .eq-value {
+            margin-top: 10px;
+            font-size: 1em;
+            color: #333;
+        }
+    </style>
 </head>
 <body>
-  <h1>Web Audio Multiband EQ</h1>
-  
-  <div class="eq-band">
-    <label for="low">Low Frequency (-12dB to +12dB)</label>
-    <input type="range" id="low" min="-12" max="12" value="0" step="0.1">
-  </div>
-  
-  <div class="eq-band">
-    <label for="mid">Mid Frequency (-12dB to +12dB)</label>
-    <input type="range" id="mid" min="-12" max="12" value="0" step="0.1">
-  </div>
-  
-  <div class="eq-band">
-    <label for="high">High Frequency (-12dB to +12dB)</label>
-    <input type="range" id="high" min="-12" max="12" value="0" step="0.1">
-  </div>
-  
-  <button id="start">Start Audio Processing</button>
+    <h1>Audio Processor with Multiband EQ</h1>
 
-  <script src="app.js"></script>
+    <!-- Toggle Switch -->
+    <div class="toggle-container">
+        <label class="switch">
+            <input type="checkbox" id="audioToggle" checked>
+            <span class="slider"></span>
+        </label>
+        <span id="toggleLabel">Audio Output: On</span>
+    </div>
+
+    <!-- Equalizer Controls -->
+    <div class="eq-container">
+        <!-- Low Frequency Band -->
+        <div class="eq-band">
+            <label for="lowGain">Low (200 Hz)</label>
+            <input type="range" id="lowGain" min="-12" max="12" value="0" step="0.1">
+            <div class="eq-value" id="lowValue">0 dB</div>
+        </div>
+
+        <!-- Mid Frequency Band -->
+        <div class="eq-band">
+            <label for="midGain">Mid (1000 Hz)</label>
+            <input type="range" id="midGain" min="-12" max="12" value="0" step="0.1">
+            <div class="eq-value" id="midValue">0 dB</div>
+        </div>
+
+        <!-- High Frequency Band -->
+        <div class="eq-band">
+            <label for="highGain">High (5000 Hz)</label>
+            <input type="range" id="highGain" min="-12" max="12" value="0" step="0.1">
+            <div class="eq-value" id="highValue">0 dB</div>
+        </div>
+    </div>
+
+    <script>
+        // Access DOM Elements
+        const audioToggle = document.getElementById('audioToggle');
+        const toggleLabel = document.getElementById('toggleLabel');
+
+        const lowGainSlider = document.getElementById('lowGain');
+        const midGainSlider = document.getElementById('midGain');
+        const highGainSlider = document.getElementById('highGain');
+
+        const lowValueLabel = document.getElementById('lowValue');
+        const midValueLabel = document.getElementById('midValue');
+        const highValueLabel = document.getElementById('highValue');
+
+        // Initialize Audio Context and Nodes
+        let audioContext;
+        let microphone;
+        let lowFilter, midFilter, highFilter;
+        let gainNode;
+
+        // Flag to check if audio is initialized
+        let isAudioInitialized = false;
+
+        // Function to Initialize Audio Processing
+        async function initAudio() {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+            try {
+                // Request access to the microphone
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                microphone = audioContext.createMediaStreamSource(stream);
+
+                // Create BiquadFilterNodes for Low, Mid, and High frequencies
+                lowFilter = audioContext.createBiquadFilter();
+                lowFilter.type = 'lowshelf';
+                lowFilter.frequency.value = 200; // 200 Hz
+
+                midFilter = audioContext.createBiquadFilter();
+                midFilter.type = 'peaking';
+                midFilter.frequency.value = 1000; // 1000 Hz
+                midFilter.Q.value = 1; // Quality factor
+
+                highFilter = audioContext.createBiquadFilter();
+                highFilter.type = 'highshelf';
+                highFilter.frequency.value = 5000; // 5000 Hz
+
+                // Create Gain Node for overall volume control
+                gainNode = audioContext.createGain();
+                gainNode.gain.value = 1; // Initial gain
+
+                // Connect the nodes: Microphone -> Low Filter -> Mid Filter -> High Filter -> Gain -> Destination
+                microphone.connect(lowFilter);
+                lowFilter.connect(midFilter);
+                midFilter.connect(highFilter);
+                highFilter.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                isAudioInitialized = true;
+            } catch (err) {
+                console.error('Error accessing microphone:', err);
+                alert('Could not access the microphone. Please check your permissions.');
+            }
+        }
+
+        // Function to Update EQ Values
+        function updateEQ() {
+            if (!isAudioInitialized) return;
+
+            // Get current slider values
+            const lowGain = parseFloat(lowGainSlider.value);
+            const midGain = parseFloat(midGainSlider.value);
+            const highGain = parseFloat(highGainSlider.value);
+
+            // Update filter gains
+            lowFilter.gain.value = lowGain;
+            midFilter.gain.value = midGain;
+            highFilter.gain.value = highGain;
+
+            // Update labels
+            lowValueLabel.textContent = `${lowGain} dB`;
+            midValueLabel.textContent = `${midGain} dB`;
+            highValueLabel.textContent = `${highGain} dB`;
+        }
+
+        // Function to Toggle Audio Output
+        function toggleAudioOutput(isOn) {
+            if (!isAudioInitialized) return;
+
+            if (isOn) {
+                gainNode.gain.value = 1; // Restore gain
+                toggleLabel.textContent = 'Audio Output: On';
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+            } else {
+                gainNode.gain.value = 0; // Mute audio
+                toggleLabel.textContent = 'Audio Output: Off';
+                if (audioContext.state === 'running') {
+                    audioContext.suspend();
+                }
+            }
+        }
+
+        // Event Listeners for EQ Sliders
+        lowGainSlider.addEventListener('input', updateEQ);
+        midGainSlider.addEventListener('input', updateEQ);
+        highGainSlider.addEventListener('input', updateEQ);
+
+        // Event Listener for Toggle Switch
+        audioToggle.addEventListener('change', (event) => {
+            toggleAudioOutput(event.target.checked);
+        });
+
+        // Initialize Audio on Page Load
+        window.addEventListener('load', initAudio);
+    </script>
 </body>
 </html>
